@@ -147,7 +147,6 @@ call plug#end()
 " 基础设置
 set number
 set relativenumber
-set cursorline
 
 " 修复 tmux 下真彩色与重影
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
@@ -158,6 +157,11 @@ set termguicolors
 set background=dark
 syntax on
 colorscheme codedark
+
+" --- 解决残影与渲染问题 ---
+set ttyfast         " 告诉 Vim 终端速度很快
+set lazyredraw      " 宏和脚本执行时不要重绘屏幕
+set updatetime=100  " 更快地更新状态
 
 " Python 相关
 set expandtab
