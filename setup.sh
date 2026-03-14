@@ -149,9 +149,10 @@ set number
 set relativenumber
 set cursorline
 
-" 修复 tmux 下真彩色
+" 修复 tmux 下真彩色与重影
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+let &t_ut = ""
 set termguicolors
 
 set background=dark
@@ -180,9 +181,9 @@ unbind C-b
 set -g prefix C-a
 bind C-a send-prefix
 
-# 真彩色支持
+# 真彩色支持与重影修复
 set -g default-terminal "tmux-256color"
-set -ag terminal-overrides ",xterm-256color:RGB"
+set -ag terminal-overrides ",xterm-256color:Tc,*:U8=0"
 set -g default-command "${SHELL}"
 
 # 鼠标支持
