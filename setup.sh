@@ -146,6 +146,7 @@ call plug#end()
 
 " 基础设置
 set number
+set relativenumber
 set cursorline
 
 " 修复 tmux 下真彩色
