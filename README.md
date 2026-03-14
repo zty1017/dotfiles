@@ -1,31 +1,88 @@
-# My Dotfiles
+# 极简终端开发环境 (Dotfiles)
 
-A quick setup script to bootstrap my terminal environment across multiple servers.
+专为 **多服务器部署** 和 **AI CLI 工具辅助开发** 设计的一键式 Vim + Tmux 终端环境。
 
-## Features
+## 核心理念
 
-- **Vim**: Configured with `vim-plug`, `vim-code-dark` (VS Code style), NERDTree, `fzf`, and Python optimizations.
-- **Tmux**: Prefix mapped to `Ctrl+a`, true color support, mouse mode, intuitive split bindings (`|` and `-`), and clean status bar.
-- **Tools**: Auto-installs `ripgrep` (for fast searches) and `glow` (for terminal Markdown rendering) without requiring root.
-- **Cheat Sheet**: Adds a `cheat` alias to `.bashrc` for quick reference of Vim and Tmux bindings.
+1. **零配置心智负担**：不依赖庞大的 LSP（交由 AI 工具补全），只提供最高频的代码微调和查看能力。
+2. **极速跨机同步**：一段命令完成部署，无 root 依赖，自带幂等性，可反复执行。
+3. **沉浸式多屏体验**：深度优化 tmux 配置，完美支持多显示器分辨率各自独立。
 
-## Installation
+---
+
+## 🚀 快速安装
+
+在任何新的 Linux 服务器上，只需克隆本仓库并执行 `setup.sh`：
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
 bash ~/dotfiles/setup.sh
 ```
 
-## Shortcuts (via `cheat` command)
+**部署内容包括**：
+- 安装和配置 `vim-plug` 及其核心微调插件
+- 配置真彩色 VS Code 风格 (`vim-code-dark`)
+- 无 Root 安装 `ripgrep` (极速全文搜索) 和 `glow` (终端 Markdown 渲染)
+- 写入优化后的 `~/.tmux.conf`
+- 自动备份服务器上原有的 Vim 和 Tmux 配置
 
-Run `cheat` in the terminal anytime to see:
+---
 
-### Tmux (`Ctrl+a` prefix)
-- `prefix + |` : Vertical split
-- `prefix + -` : Horizontal split
-- `prefix + h/j/k/l` : Switch panes (Vim style)
+## 📖 快捷键与功能速查
 
-### Vim
-- `Ctrl + n` : Toggle NERDTree
-- `Ctrl + p` : Fuzzy find files (`fzf`)
-- `Ctrl + f` : Full-text search (`rg`)
+在终端随时输入 `cheat` 命令即可唤出简易备忘录。以下是详细说明：
+
+### 🖥️ Tmux (多窗口与分屏管理)
+
+前缀键已从难按的 `Ctrl+b` 修改为 **`Ctrl+a`** (单手即可操作)。
+
+| 快捷键 | 功能说明 | 适用场景 |
+|---|---|---|
+| `Ctrl+a` + `\|` | **左右竖分屏** | 一边开 AI 工具，一边看代码 |
+| `Ctrl+a` + `-` | **上下横分屏** | 底部开个小窗看实时日志 |
+| `Ctrl+a` + `h/j/k/l`| **切换光标面板** | Vim 风格的上下左右切换分屏 |
+| `Ctrl+a` + `c` | **新建全屏窗口** | 新开一个工作区（默认保持当前目录） |
+| `Ctrl+a` + `1~9` | **切换全屏窗口** | 在不同工作区（如代码区、日志区）切换 |
+| `Ctrl+a` + `d` | **分离会话 (Detach)** | 关闭终端，程序在后台继续跑（训练必备）|
+| `Ctrl+a` + `[` | **滚屏模式** | 查看很长的历史输出，用 `j/k` 上下滚，`q` 退出 |
+| `Ctrl+a` + `r` | **重载配置** | 修改 `.tmux.conf` 后立即生效 |
+
+> **多显示器工作流**：如果你有 3 个屏幕，不要在一个终端里分屏。应该打开 3 个独立的终端窗口，每个终端输入 `tmux new-session -t session_name`。这样 3 个终端连在同一个会话下，但每个窗口的分辨率独立适配各自的显示器！
+
+---
+
+### 📝 Vim (代码查看与微调)
+
+抛弃沉重的配置，只保留微调最需要的神兵利器。
+
+#### 1. 查找与跳转
+| 快捷键 / 命令 | 功能 | 依赖插件 |
+|---|---|---|
+| `Ctrl+n` | 侧边栏开启/关闭**文件树**。按 `Enter` 打开文件，`m` 管理文件 | `nerdtree` |
+| `Ctrl+p` | 弹窗**模糊搜索文件名** (类似 VS Code `Ctrl+P`) | `fzf.vim` |
+| `Ctrl+f` | 弹窗**全局全文内容搜索** | `fzf.vim` + `ripgrep` |
+| `gd` | 跳转到当前文件内该变量的**定义位置** | 原生 |
+| `*` / `#` | 跳到上/下一个**同名变量**处 (相当于“查找引用”) | 原生 |
+| `Ctrl+o` / `Ctrl+i` | 跳回/前进 (跳转定义后**返回上一处**) | 原生 |
+
+#### 2. 编辑与修改
+当前行显示**绝对行号**，上下行显示**相对行号**，极大地加速了块操作。
+
+| 快捷键 | 功能 | 说明 |
+|---|---|---|
+| `5dd` | 向下删除 5 行 | 配合相对行号，不再数数 |
+| `3yy` | 向下复制 3 行 | 按 `p` 粘贴 |
+| `>>` / `<<` | 向右/左缩进当前行 | 配合 `V` 选中多行可批量缩进 (Python 必备) |
+| `gcc` | **单行注释 / 取消注释** | `vim-commentary` 插件 |
+| `gc3j` | **向下注释 3 行** | 配合相对行号极速注释 |
+| `u` / `Ctrl+r`| 撤销 / 重做 | 输错了随时抢救 |
+| `:%s/old/new/g` | 批量替换变量名 | 把当前文件所有 old 替换为 new |
+
+---
+
+### 🛠️ 独立终端工具
+
+| 命令 | 功能 | 适用场景 |
+|---|---|---|
+| `glow README.md` | 带样式的 **Markdown 渲染** | 在终端直接看文档、表格、代码高亮 |
+| `glow -p README.md`| 分页渲染 Markdown | 文档太长时使用，像 `less` 一样上下滚动 |
