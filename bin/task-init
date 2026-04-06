@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=bin/_dotfiles_lib.sh
+source "$SCRIPT_DIR/_dotfiles_lib.sh"
+
+require_git_repo
+
+DOTFILES_DIR="${DOTFILES_DIR:-$(find_dotfiles_dir)}"
+TARGET_FILE="${1:-TASK.md}"
+TEMPLATE_FILE="$DOTFILES_DIR/TASK_TEMPLATE.md"
+
+if [ -e "$TARGET_FILE" ]; then
+    echo "$TARGET_FILE 已存在，跳过"
+    exit 0
+fi
+
+cp "$TEMPLATE_FILE" "$TARGET_FILE"
+echo "已初始化 $TARGET_FILE"

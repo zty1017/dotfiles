@@ -1,12 +1,13 @@
 # 极简终端开发环境 (Dotfiles)
 
-专为 **多服务器部署** 和 **AI CLI 工具辅助开发** 设计的一键式 Vim + Tmux 终端环境。
+专为 **多服务器部署**、**多 worktree 开发** 和 **AI CLI 工具辅助开发** 设计的轻量终端环境。
 
 ## 核心理念
 
 1. **零配置心智负担**：不依赖庞大的 LSP（交由 AI 工具补全），只提供最高频的代码微调和查看能力。
 2. **极速跨机同步**：一段命令完成部署，无 root 依赖，自带幂等性，可反复执行。
-3. **沉浸式多屏体验**：深度优化 tmux 配置，完美支持多显示器分辨率各自独立。
+3. **终端优先但不排斥 IDE**：Vim 用于高频阅读与轻编辑，VS Code 负责重编辑与调试。
+4. **面向 AI 工作流演进**：不仅有安装脚本，也开始沉淀 `AGENTS`/`TASK` 模板和 worktree 胶水脚本。
 
 ---
 
@@ -24,7 +25,61 @@ bash ~/dotfiles/setup.sh
 - 配置真彩色 VS Code 风格 (`vim-code-dark`)
 - 无 Root 安装 `ripgrep` (极速全文搜索) 和 `glow` (终端 Markdown 渲染)
 - 写入优化后的 `~/.tmux.conf`
+- 安装 `vim-commentary`，支持 `gcc` / `gc` 系列注释操作
 - 自动备份服务器上原有的 Vim 和 Tmux 配置
+
+---
+
+## 📚 仓库内容
+
+当前仓库除了基础安装脚本，也开始包含面向 AI 工作流的方案和模板：
+
+- `setup.sh`
+  基础环境安装脚本。现在主要负责安装、备份和同步，不再承载大段配置正文。
+- `config/vim/vimrc`
+  仓库内维护的 Vim 配置
+- `config/tmux/tmux.conf`
+  仓库内维护的 tmux 配置
+- `config/shell/cheat_alias.sh`
+  `cheat` 速查命令定义
+- `bin/`
+  worktree 与 AI 工作流胶水脚本目录
+- `AI_WORKFLOW_PROPOSAL.md`
+  面向多设备、多服务器、AI agent 协作的系统方案文档
+- `AGENTS_TEMPLATE.md`
+  项目级 AI 规则模板
+- `TASK_TEMPLATE.md`
+  worktree 任务说明模板
+- `wt-context.sh`
+  打包当前 worktree 上下文的胶水脚本
+
+如果你只是想快速部署终端环境，看 `setup.sh` 即可。  
+如果你想进一步构建 AI-native 的个人工作流，建议从 `AI_WORKFLOW_PROPOSAL.md` 开始。
+如果你要调整终端配置本身，应优先修改 `config/` 下的真实配置文件，而不是去改 `setup.sh` 中的脚本逻辑。
+
+---
+
+## 🤖 Worktree / AI 胶水脚本
+
+安装后，`setup.sh` 会把仓库的 `bin/` 加入 PATH。当前已经提供：
+
+- `wt-new <type> <name> [base_branch]`
+  创建新分支、新 worktree，并自动初始化 `TASK.md`
+- `task-init [target_file]`
+  用模板初始化任务文件
+- `task-handoff [-o output_file]`
+  生成适合交接给其他 AI 或未来自己的任务摘要
+- `wt-context`
+  汇总当前 worktree 的任务、规则、diff 和目录结构
+
+典型用法：
+
+```bash
+wt-new feature new-loss main
+cd ../wt-feature-new-loss
+wt-context
+task-handoff -o HANDOFF.md
+```
 
 ---
 
@@ -86,3 +141,15 @@ bash ~/dotfiles/setup.sh
 |---|---|---|
 | `glow README.md` | 带样式的 **Markdown 渲染** | 在终端直接看文档、表格、代码高亮 |
 | `glow -p README.md`| 分页渲染 Markdown | 文档太长时使用，像 `less` 一样上下滚动 |
+| `./wt-context.sh` | 导出当前 worktree 的任务、规则、diff 和目录摘要 | 切换 AI 工具、做任务交接、补上下文 |
+
+---
+
+## 🧩 下一步方向
+
+这个仓库现在处于“基础环境可用，AI 工作流逐步产品化”的阶段。更完整的目标包括：
+
+- 把 AI 配置从通用 dotfiles 中进一步拆层
+- 增加 `wt-new`、`task-handoff` 等辅助脚本
+- 提供 `AGENTS.md` / `TASK.md` 实际模板落地方式
+- 逐步把多 agent / 多 worktree 工作流固化为可复用规范

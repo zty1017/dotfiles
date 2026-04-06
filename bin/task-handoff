@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+OUTPUT_FILE=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -o|--output)
+            OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        *)
+            echo "用法: task-handoff [-o output_file]" >&2
+            exit 1
+            ;;
+    esac
+done
+
+render_handoff() {
+    printf '# TASK HANDOFF\n\n'
+
+    printf '## 当前目录\n\n'
+    printf '`%s`\n\n' "$(pwd)"
+
+    printf '## 当前分支\n\n'
+    printf '`%s`\n\n' "$(git branch --show-current 2>/dev/null || true)"
+
+    printf '## Git 状态\n\n'
+    printf '```text\n'
+    git status --short 2>/dev/null || true
+    printf '```\n\n'
+
+    if [ -f "TASK.md" ]; then
+        printf '## TASK.md\n\n'
+        printf '```markdown\n'
+        sed -n '1,220p' TASK.md
+        printf '\n```\n\n'
+    fi
+
+    if [ -f "PLAN.md" ]; then
+        printf '## PLAN.md\n\n'
+        printf '```markdown\n'
+        sed -n '1,220p' PLAN.md
+        printf '\n```\n\n'
+    fi
+
+    if [ -f "AGENTS.md" ]; then
+        printf '## AGENTS.md 摘要\n\n'
+        printf '```markdown\n'
+        sed -n '1,160p' AGENTS.md
+        printf '\n```\n\n'
+    fi
+
+    printf '## 未提交修改统计\n\n'
+    printf '```text\n'
+    git diff --stat 2>/dev/null || true
+    printf '```\n\n'
+
+    printf '## 最近提交\n\n'
+    printf '```text\n'
+    git log --oneline -n 10 2>/dev/null || true
+    printf '```\n'
+}
+
+if [ -n "$OUTPUT_FILE" ]; then
+    render_handoff > "$OUTPUT_FILE"
+    echo "已写入 $OUTPUT_FILE"
+else
+    render_handoff
+fi

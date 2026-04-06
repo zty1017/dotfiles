@@ -1,0 +1,48 @@
+set nocompatible
+
+" 插件管理
+call plug#begin('~/.vim/plugged')
+Plug 'tomasiser/vim-code-dark'
+Plug 'preservim/nerdtree'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'tpope/vim-commentary'
+Plug 'vim-airline/vim-airline'
+Plug 'LunarWatcher/auto-pairs'
+Plug 'Vimjas/vim-python-pep8-indent'
+Plug 'stephpy/vim-yaml'
+call plug#end()
+
+" 基础设置
+set number
+set relativenumber
+
+" 修复 tmux 下真彩色与重影
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+let &t_ut = ""
+set termguicolors
+
+set background=dark
+syntax on
+colorscheme codedark
+
+" --- 解决残影与渲染问题 ---
+set ttyfast
+set lazyredraw
+set updatetime=100
+
+" Python 相关
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set autoindent
+set fileencoding=utf-8
+
+" NERDTree 快捷键
+nnoremap <C-n> :NERDTreeToggle<CR>
+
+" fzf 快捷键
+nnoremap <C-p> :Files<CR>
+nnoremap <C-f> :Rg<CR>

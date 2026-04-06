@@ -4,6 +4,8 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "=== 部署终端环境 ==="
 
 # 1. 安装 vim-plug
@@ -20,6 +22,7 @@ for repo in \
     preservim/nerdtree \
     junegunn/fzf \
     junegunn/fzf.vim \
+    tpope/vim-commentary \
     vim-airline/vim-airline \
     LunarWatcher/auto-pairs \
     Vimjas/vim-python-pep8-indent \
@@ -61,12 +64,21 @@ else
     fi
 fi
 
-# 确保 ~/bin 在 PATH 中
+# 确保 ~/bin 和 dotfiles/bin 在 PATH 中
 if ! echo "$PATH" | grep -q "$HOME/bin"; then
     for rc in ~/.bashrc ~/.zshrc; do
         if [ -f "$rc" ] && ! grep -q 'export PATH="$HOME/bin:$PATH"' "$rc"; then
             echo 'export PATH="$HOME/bin:$PATH"' >> "$rc"
             echo "  已添加 ~/bin 到 $rc"
+        fi
+    done
+fi
+
+if ! echo "$PATH" | grep -q "$SCRIPT_DIR/bin"; then
+    for rc in ~/.bashrc ~/.zshrc; do
+        if [ -f "$rc" ] && ! grep -Fq "export PATH=\"$SCRIPT_DIR/bin:\$PATH\"" "$rc"; then
+            echo "export PATH=\"$SCRIPT_DIR/bin:\$PATH\"" >> "$rc"
+            echo "  已添加 $SCRIPT_DIR/bin 到 $rc"
         fi
     done
 fi
@@ -92,34 +104,10 @@ fi
 # 写入速查命令到 bashrc
 echo "[4.8] 配置 cheat 速查命令..."
 if ! grep -q "alias cheat" ~/.bashrc; then
-    cat >> ~/.bashrc << 'EOF'
-
-alias cheat='echo "
-=== tmux (prefix = Ctrl+a) ===
-  prefix+|    竖分屏
-  prefix+-    横分屏
-  prefix+hjkl 切换面板
-  prefix+1-9  切换窗口
-  prefix+c    新窗口
-  prefix+d    分离 session
-  prefix+r    重载配置
-  prefix+?    所有快捷键
-  prefix+w    窗口列表
-  prefix+[    滚动模式 (q退出)
-
-=== Vim ===
-  Ctrl+n  文件树
-  Ctrl+p  搜索文件
-  Ctrl+f  全文搜索
-  :w      保存
-  :q      退出
-  :wq     保存退出
-  dd      删除行
-  yy/p    复制/粘贴行
-  u       撤销
-  /关键词 搜索
-"'
-EOF
+    {
+        echo ""
+        cat "$SCRIPT_DIR/config/shell/cheat_alias.sh"
+    } >> ~/.bashrc
 fi
 
 # 5. 写入配置文件
@@ -129,116 +117,8 @@ echo "[5/5] 写入配置文件..."
 [ -f ~/.vimrc ] && cp ~/.vimrc ~/.vimrc.bak.$(date +%s)
 [ -f ~/.tmux.conf ] && cp ~/.tmux.conf ~/.tmux.conf.bak.$(date +%s)
 
-cat > ~/.vimrc << 'VIMRC'
-set nocompatible
-
-" 插件管理
-call plug#begin('~/.vim/plugged')
-Plug 'tomasiser/vim-code-dark'
-Plug 'preservim/nerdtree'
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
-Plug 'vim-airline/vim-airline'
-Plug 'LunarWatcher/auto-pairs'
-Plug 'Vimjas/vim-python-pep8-indent'
-Plug 'stephpy/vim-yaml'
-call plug#end()
-
-" 基础设置
-set number
-set relativenumber
-
-" 修复 tmux 下真彩色与重影
-let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-let &t_ut = ""
-set termguicolors
-
-set background=dark
-syntax on
-colorscheme codedark
-
-" --- 解决残影与渲染问题 ---
-set ttyfast         " 告诉 Vim 终端速度很快
-set lazyredraw      " 宏和脚本执行时不要重绘屏幕
-set updatetime=100  " 更快地更新状态
-
-" Python 相关
-set expandtab
-set tabstop=4
-set shiftwidth=4
-set softtabstop=4
-set autoindent
-set fileencoding=utf-8
-
-" NERDTree 快捷键
-nnoremap <C-n> :NERDTreeToggle<CR>
-
-" fzf 快捷键
-nnoremap <C-p> :Files<CR>
-nnoremap <C-f> :Rg<CR>
-VIMRC
-
-cat > ~/.tmux.conf << 'TMUX'
-# prefix 改为 Ctrl+a
-unbind C-b
-set -g prefix C-a
-bind C-a send-prefix
-
-# 真彩色支持与重影修复
-set -g default-terminal "tmux-256color"
-set -ag terminal-overrides ",xterm-256color:Tc,*:U8=0"
-set -g default-command "${SHELL}"
-
-# 鼠标支持
-set -g mouse on
-
-# 解决 Vim 中 Esc 延迟
-set -sg escape-time 10
-
-# 增大滚动缓冲区
-set -g history-limit 50000
-
-# 窗口编号从 1 开始
-set -g base-index 1
-setw -g pane-base-index 1
-
-# 窗口关闭后自动重新编号
-set -g renumber-windows on
-
-# 分屏快捷键
-bind | split-window -h -c "#{pane_current_path}"
-bind - split-window -v -c "#{pane_current_path}"
-
-# 新窗口保持当前目录
-bind c new-window -c "#{pane_current_path}"
-
-# vim 风格切换面板
-bind h select-pane -L
-bind j select-pane -D
-bind k select-pane -U
-bind l select-pane -R
-
-# 快速重载配置
-bind r source-file ~/.tmux.conf \; display "Config reloaded!"
-
-# 状态栏美化
-set -g status-style bg=colour235,fg=colour136
-set -g status-left-length 30
-set -g status-right-length 50
-set -g status-left '#[fg=colour46]#S #[fg=colour240]| '
-set -g status-right '#[fg=colour240]| #[fg=colour250]%H:%M #[fg=colour240]| #[fg=colour250]%m-%d'
-
-# 当前窗口高亮
-setw -g window-status-current-style fg=colour81,bold
-setw -g window-status-style fg=colour240
-
-# 面板边框
-set -g pane-border-style fg=colour240
-set -g pane-active-border-style fg=colour81
-
-setw -g aggressive-resize on
-TMUX
+cp "$SCRIPT_DIR/config/vim/vimrc" ~/.vimrc
+cp "$SCRIPT_DIR/config/tmux/tmux.conf" ~/.tmux.conf
 
 echo ""
 echo "=== 部署完成 ==="
